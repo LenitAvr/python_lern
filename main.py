@@ -6,6 +6,23 @@ from database import get_db
 from typing import Optional
 from pydantic import BaseModel
 
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+import os
+
+# Настройка подключения к PostgreSQL
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:1234@db/gamedb")
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"message": "FastAPI + Docker + PostgreSQL"}
+
 app = FastAPI()
 
 

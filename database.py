@@ -7,7 +7,7 @@ Base = declarative_base()
 
 
 
-DATABASE_URL = "postgresql+asyncpg://postgres:1234@localhost/gamedb"
+DATABASE_URL = "postgresql+asyncpg://postgres:1234@db/gamedb"
 
 engine = create_async_engine(DATABASE_URL, pool_size=10, max_overflow=20)
 AsyncSessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
