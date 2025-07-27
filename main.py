@@ -1,21 +1,14 @@
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from models import Game, Provider
-from database import get_db
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
+from models import Game, Provider
+from database import get_db, engine, Base
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-import os
-
-# Настройка подключения к PostgreSQL
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:1234@db/gamedb")
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+load_dotenv()
 
 app = FastAPI()
 
@@ -23,30 +16,38 @@ app = FastAPI()
 def read_root():
     return {"message": "FastAPI + Docker + PostgreSQL"}
 
-app = FastAPI()
-
-
 class SearchResult(BaseModel):
     games: list[int] = []
     providers: list[int] = []
 
-
+# Основной поисковый эндпоинт
 @app.get("/search/", response_model=SearchResult)
 async def search(
         query: Optional[str] = Query(None, min_length=2, max_length=100),
         db: AsyncSession = Depends(get_db)
 ):
-    result = SearchResult()
+    if not query:
+        return SearchResult()
 
-    if query:
+    try:
         # Поиск игр
-        games_stmt = select(Game.id).where(Game.title.ilike(f"%{query}%"))
-        games_result = await db.execute(games_stmt)
-        result.games = [row[0] for row in games_result]
+        games_result = await db.execute(
+            select(Game.id).where(Game.title.ilike(f"%{query}%"))
+        )
+        games_ids = [row[0] for row in games_result.scalars().all()]
 
         # Поиск провайдеров
-        providers_stmt = select(Provider.id).where(Provider.name.ilike(f"%{query}%"))
-        providers_result = await db.execute(providers_stmt)
-        result.providers = [row[0] for row in providers_result]
+        providers_result = await db.execute(
+            select(Provider.id).where(Provider.name.ilike(f"%{query}%"))
+        )
+        providers_ids = [row[0] for row in providers_result.scalars().all()]
+
+        return SearchResult(games=games_ids, providers=providers_ids)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {str(e)}"
+        )
 
     return result
