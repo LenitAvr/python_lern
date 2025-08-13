@@ -10,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   web:
     build: .
@@ -22,7 +22,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:1234@localhost/gamedb
+      DATABASE_URL: postgresql+asyncpg://postgres:1234@db:5432/gamedb
 
 volumes:
   postgres_data:
