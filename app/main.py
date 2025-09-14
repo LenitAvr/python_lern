@@ -1,12 +1,39 @@
-# app/main.py
 from fastapi import FastAPI
-from app.api.endpoints.search import router as search_router
+from fastapi.middleware.cors import CORSMiddleware
+import logging
 
-app = FastAPI(title="gamedb")
+from app.api.endpoints import search
+from app.core.config import settings
+from app.core.cache import cache
 
-@app.get("/")
-def read_root():
-    return {"message": "FastAPI + Docker + PostgreSQL"}
+logging.basicConfig(level=logging.INFO if settings.DEBUG else logging.WARNING)
+logger = logging.getLogger(__name__)
 
-# include endpoints
-app.include_router(search_router)
+app = FastAPI(
+    title=settings.APP_NAME,
+    version="0.1.0",
+    openapi_url="/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ТОЛЬКО поисковый энд-поинт
+app.include_router(search.router, tags=["search"])
+
+
+@app.on_event("startup")
+async def startup():
+    await cache.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await cache.disconnect()

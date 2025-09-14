@@ -1,11 +1,27 @@
-# app/core/config.py
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
+from typing import Optional
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:1234@db:5432/gamedb"
+    # --- database ---
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: str
+    POSTGRES_DB: str
+    DATABASE_URL: Optional[str] = None
+
+    # --- redis ---
+    REDIS_HOST: str
+    REDIS_PORT: str
+    REDIS_PASSWORD: str
+    CACHE_TTL: int = 300
+
+    # --- app ---
+    APP_NAME: str = "SearchEnpoint"
+    DEBUG: bool = False
 
     class Config:
         env_file = ".env"
-        env_file_encoding = "utf-8"
+        extra = "ignore"
 
 settings = Settings()

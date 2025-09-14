@@ -1,22 +1,23 @@
-# app/db/models.py
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Numeric
+from sqlalchemy import Column, Integer, String, Boolean, Numeric, ForeignKey
 from sqlalchemy.orm import relationship
 from app.db.session import Base
+
 
 class Provider(Base):
     __tablename__ = "providers"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(100), unique=True)
+    name = Column(String(100), unique=True, index=True)
     email = Column(String(255))
 
     games = relationship("Game", back_populates="provider")
+
 
 class Game(Base):
     __tablename__ = "games"
 
     id = Column(Integer, primary_key=True)
-    title = Column(String(200))
+    title = Column(String(200), index=True)
     price = Column(Numeric(10, 2))
     is_published = Column(Boolean, default=True)
     provider_id = Column(Integer, ForeignKey("providers.id"))

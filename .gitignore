@@ -5,13 +5,23 @@ __pycache__/
 *.pyd
 *.py[cod]
 
-# Environments
-.venv/
+# --- Virtual environments ---
 venv/
 env/
+ENV/
+virtualenv/
+.venv/
 
-# IDEs
-.idea/
+# --- IDE ---
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-dump.sql
+# --- Environment files ---
+.env
+.env.local
+.env.production
+.env.test
+.env.development
